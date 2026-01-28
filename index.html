@@ -15,9 +15,8 @@
   }
   h1 { margin: 6px 0 10px; text-align:center; font-size:18px; }
 
-  .top { display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap; }
+  .top { display:flex; justify-content:flex-end; align-items:center; gap:10px; flex-wrap:wrap; }
   .meta { font-size:12px; color:#555; }
-  .pill { font-size:12px; color:#444; background:#fafafa; border:1px solid #eee; padding:6px 10px; border-radius:999px; }
 
   .card { margin-top:10px; border:1px solid #e5e5e5; border-radius:12px; padding:12px; background:#fff; }
   .cat { font-size:12px; font-weight:900; color:#444; margin-bottom:6px; }
@@ -64,9 +63,8 @@
 
   /* =========================
      VISUALS: Krug + Gläser
-     - Saft in den Krügen: EIN einheitliches, helles Orange
-     - (kein getrenntes Orange/Wasser-Overlay im Krug!)
-     - Füllstand zeigt Menge über Höhe
+     - Krugfüllung: einheitlich hellorange (nur Höhe)
+     - Gläser: Saft orange, Wasser klar
   ========================= */
   :root{
     --juice: rgba(255, 170, 60, 0.72);   /* helles Orange */
@@ -90,7 +88,6 @@
     border:2px solid var(--outline); border-bottom:none;
     border-radius:10px 10px 0 0; background:#fff;
   }
-  /* Krugfüllung: immer hellorange (nur Höhe ändert) */
   .jugFill{
     position:absolute; left:9px; right:9px; bottom:9px;
     border-radius:10px;
@@ -149,7 +146,6 @@
   <h1>Verhältnisse – Saft und Wasser</h1>
 
   <div class="top">
-    <div class="pill">Eine Aufgabe. Dann „Weiter“.</div>
     <div class="meta" id="meta">0 / 0</div>
   </div>
 
@@ -196,8 +192,6 @@ function strength(ing, water){
 
 /* =========================
    Visual system
-   - Krugfüllung: immer hellorange (nur Höhe)
-   - Gläser: Saft orange, Wasser klar
 ========================= */
 function unitsFromMix(mix){
   const sSmall = (mix.saft?.small || 0);
@@ -292,8 +286,6 @@ function renderTwoJugs(container, mixA, mixB){
 
 /* =========================
    Steps
-   - helpText erscheint erst NACH einer Antwort (egal ob richtig/falsch)
-   - helpText wird fett dargestellt
 ========================= */
 const steps = [
   {
@@ -307,7 +299,7 @@ const steps = [
       <p><b>Merksatz:</b><br>
       Zwei Mischungen <b>schmecken gleich / sind gleich gemischt</b>, wenn das Verhältnis gleich ist.</p>
     `,
-    helpText:`Orange ist Saft. Klar ist Wasser.`,
+    // kein Help-Text mehr hier
   },
 
   {
@@ -330,7 +322,7 @@ const steps = [
       {t:"Krug B schmeckt schwächer / ist schwächer gemischt als Krug A.", ok:false},
       {t:"Man kann das nicht sagen.", ok:false}
     ],
-    helpText:`Hier ist in Krug B mehr drin. Das kann trotzdem gleich gemischt sein.`,
+    helpText:`Hier ist in Krug B mehr drin. Das kann trotzdem gleich gemischt sein. Achte auf das <b>Verhältnis</b>.`,
   },
 
   {
@@ -348,7 +340,7 @@ const steps = [
     mixA:{ saft:{small:1}, wasser:{small:2} },
     mixB:{ saft:{small:2}, wasser:{small:4} },
     correctYes:true,
-    helpText:`Auch wenn Krug B voller ist: Das Verhältnis kann gleich sein.`,
+    helpText:`Hier wird jedes Glas Saft mit gleich vielen Gläsern Wasser gemischt → gleich gemischt.`,
   },
 
   {
@@ -366,7 +358,7 @@ const steps = [
     mixA:{ saft:{small:2}, wasser:{small:4} },
     mixB:{ saft:{small:3}, wasser:{small:3} },
     correctYes:false,
-    helpText:`Hier ist gleich viel im Krug. Trotzdem kann es anders gemischt sein.`,
+    helpText:`Obwohl gleich viel im Krug ist: Das <b>Verhältnis</b> ist anders → nicht gleich gemischt.`,
   },
 
   {
@@ -384,7 +376,7 @@ const steps = [
     mixA:{ saft:{large:1}, wasser:{large:2} },
     mixB:{ saft:{small:2}, wasser:{small:4} },
     correctYes:true,
-    helpText:`Große und kleine Gläser können trotzdem gleich viel ergeben.`,
+    helpText:`Es kommt nicht auf die Größe der einzelnen Gläser an, sondern wie viele Gläser Saft mit wie vielen Gläsern Wasser gemischt werden. Das <b>Verhältnis</b> ist gleich.`,
   },
 
   {
@@ -407,7 +399,7 @@ const steps = [
       {t:"Krug B schmeckt schwächer / ist schwächer gemischt als Krug A.", ok:false},
       {t:"Man kann das nicht sagen.", ok:false}
     ],
-    helpText:`Wichtig ist: Saft zu Wasser.`,
+    helpText:`Wichtig ist: Wieviel Gläser Wasser werden mit jedem Glas Saft gemischt. Wie ist das <b>Verhältnis</b> <b>Saft:Wasser</b>?`,
   },
 
   {
@@ -426,7 +418,7 @@ const steps = [
       {t:"1 Glas Saft und 3 Gläser Wasser", ok:false},
       {t:"3 Gläser Saft und 4 Gläser Wasser", ok:false}
     ],
-    helpText:`Gleich gemischt bedeutet: gleich viel Saft zu Wasser.`,
+    helpText:`Gleich gemischt heißt: gleiches <b>Verhältnis</b> <b>Saft:Wasser</b>.`,
   },
 
   {
@@ -442,7 +434,7 @@ const steps = [
     prompt:`Schmecken die Mischungen gleich / sind sie gleich gemischt?`,
     showVisual:false,
     correctYes:true,
-    helpText:`3:9 ist wie 1:3 → gleich gemischt.`,
+    helpText:`3:9 ist wie 1:3 → gleiches <b>Verhältnis</b> <b>Saft:Wasser</b>.`,
   },
 
   {
@@ -462,7 +454,7 @@ const steps = [
       {t:"1 Löffel Farbe und 5 Löffel Wasser", ok:false},
       {t:"3 Löffel Farbe und 6 Löffel Wasser", ok:false}
     ],
-    helpText:`Gleiche Idee: Gleich gemischt = gleiches Verhältnis.`,
+    helpText:`Auch hier: gleiches <b>Verhältnis</b> <b>Farbe:Wasser</b> → gleich gemischt.`,
   },
 
   {
@@ -481,7 +473,7 @@ const steps = [
       {id:"s3", text:"1 Glas Saft und 4 Gläser Wasser", ing:1, water:4},
       {id:"s4", text:"1 Glas Saft und 6 Gläser Wasser", ing:1, water:6},
     ],
-    helpText:`Tipp: Mehr Saft pro Wasser = stärker.`,
+    helpText:`Tipp: Vergleiche das <b>Verhältnis</b> <b>Saft:Wasser</b>. Mehr Wasser pro Glas Saft = schwächer.`,
   }
 ];
 
@@ -546,11 +538,6 @@ function renderStep(){
   }
 
   if(s.type === "intro"){
-    // Bei Intro sofort zeigen (optional); du kannst das auch ausblenden lassen:
-    if(s.helpText){
-      helpEl.innerHTML = `<b>${s.helpText}</b>`;
-      helpEl.style.display = "block";
-    }
     nextBtn.disabled = false;
     return;
   }
@@ -590,7 +577,6 @@ function renderMC(s){
       } else {
         btn.classList.add("wrong");
         feedbackEl.textContent = "Falsch.";
-        // mark correct
         [...answersEl.children].forEach((el) => {
           const txt = el.textContent;
           const found = s.answers.find(x => x.t === txt);
@@ -629,7 +615,6 @@ function renderYesNo(s){
       } else {
         btn.classList.add("wrong");
         feedbackEl.textContent = "Falsch.";
-        // mark correct option
         [...answersEl.children].forEach(el => {
           if((el.textContent==="Ja" && s.correctYes) || (el.textContent==="Nein" && !s.correctYes)){
             el.classList.add("correct");
@@ -646,7 +631,7 @@ function renderYesNo(s){
 }
 
 /* =========================
-   Sort UI (single drop field)
+   Sort UI
 ========================= */
 let dragEl = null;
 
@@ -747,7 +732,7 @@ function renderSort(s){
       nextBtn.disabled = false;
     } else {
       result.className = "bad";
-      result.textContent = "❌ Noch nicht. Tipp: Mehr Saft pro Wasser = stärker.";
+      result.textContent = "❌ Noch nicht. Tipp: Mehr Wasser pro Glas Saft = schwächer.";
       nextBtn.disabled = true;
     }
 
