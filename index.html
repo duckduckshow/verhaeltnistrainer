@@ -1,0 +1,1009 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Verhältnisse – Verdünnung (Level 1 + Level 2 + Sortieren + Arbeitsblatt)</title>
+
+<style>
+  * { box-sizing: border-box; font-family: system-ui, -apple-system, Segoe UI, sans-serif; }
+  body { margin: 0; background:#f4f4f4; display:flex; justify-content:center; }
+  .app { background:#fff; max-width: 980px; width:100%; margin:12px; padding:12px; border-radius:10px; box-shadow:0 2px 8px rgba(0,0,0,.08); }
+  h1 { margin: 6px 0 10px; text-align:center; font-size:18px; }
+  .topbar { display:flex; gap:8px; flex-wrap:wrap; justify-content:space-between; align-items:center; margin-bottom:10px; }
+  .tabs { display:flex; gap:6px; flex-wrap:wrap; }
+  .tab {
+    border:1px solid #ccc; background:#fafafa; padding:6px 10px; border-radius:8px; cursor:pointer;
+    font-size:13px;
+  }
+  .tab.active { background:#e8f0ff; border-color:#7aa7ff; }
+  .pill { font-size:12px; color:#555; }
+  .panel { display:none; }
+  .panel.active { display:block; }
+
+  .card { border:1px solid #e5e5e5; border-radius:10px; padding:10px; background:#fff; }
+  .row { display:flex; gap:10px; flex-wrap:wrap; align-items:flex-start; }
+  .col { flex: 1 1 320px; }
+
+  .category { font-size:12px; font-weight:700; color:#444; margin-bottom:6px; }
+  .question { font-weight:700; margin-bottom:8px; }
+  .prompt { font-size:13px; color:#444; margin-bottom:8px; }
+
+  .answers { display:grid; gap:8px; }
+  .answer {
+    border:1px solid #ccc; border-radius:10px; padding:8px; background:#fafafa; cursor:pointer;
+    display:flex; gap:10px; align-items:center;
+  }
+  .answer:hover { background:#f0f0f0; }
+  .answer.disabled { pointer-events:none; opacity:.95; }
+  .answer.correct { background:#d4edda; border-color:#28a745; }
+  .answer.wrong { background:#f8d7da; border-color:#dc3545; }
+
+  .feedback { margin-top:8px; font-weight:800; min-height:20px; }
+  .controls { display:flex; justify-content:space-between; align-items:center; margin-top:10px; gap:8px; flex-wrap:wrap; }
+  .btn { padding:7px 10px; border:none; border-radius:10px; background:#007bff; color:#fff; cursor:pointer; font-size:13px; }
+  .btn:hover { background:#0062cc; }
+  .btn.secondary { background:#222; }
+  .btn.secondary:hover { background:#000; }
+  .progress { font-size:12px; color:#666; }
+  .score { font-size:12px; color:#555; }
+
+  /* Simple cup visuals */
+  .cupWrap { display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+  .cupLabel { font-size:12px; font-weight:700; margin-top:2px; text-align:center; }
+  .mini { width:54px; }
+  .mid { width:86px; }
+
+  /* Sorting */
+  .sortZone { display:flex; gap:12px; flex-wrap:wrap; align-items:flex-start; }
+  .sortCol { flex: 1 1 360px; }
+  .sortTitle { font-weight:800; margin:6px 0 8px; }
+  .sortList { display:flex; flex-direction:column; gap:8px; padding:8px; border:1px dashed #bbb; border-radius:10px; background:#fcfcfc; min-height: 80px; }
+  .sortItem {
+    border:1px solid #ccc; border-radius:10px; padding:8px; background:#fafafa;
+    display:flex; align-items:center; gap:10px;
+  }
+  .sortItem[draggable="true"] { cursor: grab; }
+  .dropHint { font-size:12px; color:#666; margin-top:6px; }
+  .ok { color:#28a745; font-weight:800; }
+  .bad { color:#dc3545; font-weight:800; }
+
+  /* Worksheet (print) */
+  .worksheet {
+    margin-top: 10px;
+    border-top: 1px solid #eee;
+    padding-top: 10px;
+  }
+  .wsPage {
+    background:#fff;
+    border:1px solid #ddd;
+    border-radius:10px;
+    padding:12px;
+  }
+  .wsH { font-weight:900; margin:0 0 6px; }
+  .wsSmall { font-size:12px; color:#444; margin: 0 0 10px; }
+  .wsBlock { margin: 10px 0; }
+  .wsQ { font-weight:800; margin-bottom:6px; }
+  .wsLine { height: 16px; border-bottom: 1px solid #000; margin: 6px 0; }
+  .wsGrid { display:flex; gap:12px; flex-wrap:wrap; }
+  .wsCell { border:1px solid #000; padding:8px; border-radius:8px; min-width: 220px; }
+  .wsCell .wsHint { font-size:12px; }
+
+  @media print {
+    body { background:#fff; }
+    .app { box-shadow:none; margin:0; border-radius:0; }
+    .topbar, .tabs, .btn, .pill, .controls { display:none !important; }
+    .panel { display:block !important; }
+    .panel:not(#panelWorksheet) { display:none !important; }
+    .wsPage { border:none; border-radius:0; }
+  }
+</style>
+</head>
+
+<body>
+<div class="app">
+  <h1>Verhältnisse & Verdünnung – Level 1 + Level 2 + Sortieren + Arbeitsblatt</h1>
+
+  <div class="topbar">
+    <div class="tabs">
+      <button class="tab active" data-tab="panelL1">Level 1 (Erkennen)</button>
+      <button class="tab" data-tab="panelL2">Level 2 (Übertragen)</button>
+      <button class="tab" data-tab="panelSort">Sortieren (Drag & Drop)</button>
+      <button class="tab" data-tab="panelWorksheet">Arbeitsblatt (S/W)</button>
+    </div>
+    <div class="pill">Tipp: Dunkler = stärker • Gleiche Muster-Dichte = gleich „schmeckt“</div>
+  </div>
+
+  <!-- LEVEL 1 -->
+  <div id="panelL1" class="panel active">
+    <div class="card">
+      <div class="row">
+        <div class="col">
+          <div class="category" id="l1Cat"></div>
+          <div class="question" id="l1Q"></div>
+          <div class="prompt" id="l1Prompt"></div>
+        </div>
+        <div class="col">
+          <div class="category">Bild</div>
+          <div id="l1Visual" class="cupWrap"></div>
+        </div>
+      </div>
+
+      <div class="answers" id="l1Answers"></div>
+      <div class="feedback" id="l1Feedback"></div>
+
+      <div class="controls">
+        <div class="progress" id="l1Progress"></div>
+        <div class="score" id="l1Score">Punkte: 0</div>
+        <button class="btn" id="l1Next">Nächste Frage</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- LEVEL 2 -->
+  <div id="panelL2" class="panel">
+    <div class="card">
+      <div class="row">
+        <div class="col">
+          <div class="category" id="l2Cat"></div>
+          <div class="question" id="l2Q"></div>
+          <div class="prompt" id="l2Prompt"></div>
+        </div>
+        <div class="col">
+          <div class="category">Bild</div>
+          <div id="l2Visual" class="cupWrap"></div>
+        </div>
+      </div>
+
+      <div class="answers" id="l2Answers"></div>
+      <div class="feedback" id="l2Feedback"></div>
+
+      <div class="controls">
+        <div class="progress" id="l2Progress"></div>
+        <div class="score" id="l2Score">Punkte: 0</div>
+        <button class="btn" id="l2Next">Nächste Frage</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- SORTING -->
+  <div id="panelSort" class="panel">
+    <div class="card">
+      <div class="category">Sortieren (Drag & Drop)</div>
+      <div class="question">Ziehe die Karten in die richtige Reihenfolge.</div>
+      <div class="prompt">Ordne von <b>stark</b> (links/oben) nach <b>schwach</b> (rechts/unten). Danach auf „Prüfen“ klicken.</div>
+
+      <div class="sortZone">
+        <div class="sortCol">
+          <div class="sortTitle">Aufgabe A – Saft</div>
+          <div class="sortList" id="sortA"></div>
+          <div class="dropHint">Reihenfolge: stärkster Geschmack → schwächster Geschmack</div>
+          <div id="sortAResult"></div>
+        </div>
+
+        <div class="sortCol">
+          <div class="sortTitle">Aufgabe B – Farbe (Wasserfarbe)</div>
+          <div class="sortList" id="sortB"></div>
+          <div class="dropHint">Reihenfolge: dunkelste Farbe → hellste Farbe</div>
+          <div id="sortBResult"></div>
+        </div>
+
+        <div class="sortCol">
+          <div class="sortTitle">Aufgabe C – Kakao</div>
+          <div class="sortList" id="sortC"></div>
+          <div class="dropHint">Reihenfolge: am meisten Kakao → am wenigsten Kakao</div>
+          <div id="sortCResult"></div>
+        </div>
+      </div>
+
+      <div class="controls">
+        <div class="progress">Tipp: Gleicher Anteil „Zutat“ pro Wasser = gleich stark.</div>
+        <button class="btn secondary" id="sortReset">Neu mischen</button>
+        <button class="btn" id="sortCheck">Prüfen</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- WORKSHEET -->
+  <div id="panelWorksheet" class="panel">
+    <div class="card">
+      <div class="category">Arbeitsblatt (Schwarz-Weiß, druckfreundlich)</div>
+      <div class="prompt">Klicke auf „Drucken“, um nur das Arbeitsblatt auszudrucken.</div>
+      <button class="btn" onclick="window.print()">Drucken</button>
+
+      <div class="worksheet">
+        <div class="wsPage">
+          <h2 class="wsH">Arbeitsblatt: Verhältnisse & Verdünnung</h2>
+          <p class="wsSmall">Name: ____________________________   Datum: ________________</p>
+
+          <div class="wsBlock">
+            <div class="wsQ">1) Gleicher Geschmack: Kreise die richtige Antwort ein.</div>
+            <div class="wsGrid">
+              <div class="wsCell">
+                <div><b>A</b></div>
+                <div class="wsHint">Saft</div>
+                <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:6px;">
+                  <div>
+                    <div class="mini" id="ws1a1"></div>
+                    <div style="text-align:center;font-size:12px;">1 : 2</div>
+                  </div>
+                  <div>
+                    <div class="mini" id="ws1a2"></div>
+                    <div style="text-align:center;font-size:12px;">2 : 4</div>
+                  </div>
+                </div>
+                <div style="margin-top:8px;font-size:12px;">Schmecken gleich?  JA / NEIN</div>
+              </div>
+
+              <div class="wsCell">
+                <div><b>B</b></div>
+                <div class="wsHint">Kakao</div>
+                <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:6px;">
+                  <div>
+                    <div class="mini" id="ws1b1"></div>
+                    <div style="text-align:center;font-size:12px;">1 : 3</div>
+                  </div>
+                  <div>
+                    <div class="mini" id="ws1b2"></div>
+                    <div style="text-align:center;font-size:12px;">1 : 5</div>
+                  </div>
+                </div>
+                <div style="margin-top:8px;font-size:12px;">Schmecken gleich?  JA / NEIN</div>
+              </div>
+
+              <div class="wsCell">
+                <div><b>C</b></div>
+                <div class="wsHint">Farbe</div>
+                <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:6px;">
+                  <div>
+                    <div class="mini" id="ws1c1"></div>
+                    <div style="text-align:center;font-size:12px;">2 : 6</div>
+                  </div>
+                  <div>
+                    <div class="mini" id="ws1c2"></div>
+                    <div style="text-align:center;font-size:12px;">1 : 3</div>
+                  </div>
+                </div>
+                <div style="margin-top:8px;font-size:12px;">Schmecken/sehen gleich?  JA / NEIN</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="wsBlock">
+            <div class="wsQ">2) Stärker oder schwächer?</div>
+            <div style="font-size:12px;margin-bottom:6px;">Schreibe <b>stärker</b> oder <b>schwächer</b> hinein.</div>
+            <div class="wsLine"></div>
+            <div style="font-size:12px;">Wenn ich <b>mehr Wasser</b> dazugebe, wird die Mischung ______________________.</div>
+            <div class="wsLine"></div>
+            <div style="font-size:12px;">Wenn ich <b>mehr Saft/Kakao/Farbe</b> dazugebe, wird die Mischung ______________________.</div>
+          </div>
+
+          <div class="wsBlock">
+            <div class="wsQ">3) Sortieren (ohne Rechnen): Nummeriere von 1 (stark) bis 4 (schwach).</div>
+            <div style="display:flex;gap:10px;flex-wrap:wrap;">
+              <div class="wsCell" style="min-width:180px;">
+                <div id="ws3_1" class="mini"></div>
+                <div style="text-align:center;font-size:12px;">1 : 2</div>
+                <div style="margin-top:8px;font-size:12px;">Nummer: ____</div>
+              </div>
+              <div class="wsCell" style="min-width:180px;">
+                <div id="ws3_2" class="mini"></div>
+                <div style="text-align:center;font-size:12px;">1 : 3</div>
+                <div style="margin-top:8px;font-size:12px;">Nummer: ____</div>
+              </div>
+              <div class="wsCell" style="min-width:180px;">
+                <div id="ws3_3" class="mini"></div>
+                <div style="text-align:center;font-size:12px;">1 : 4</div>
+                <div style="margin-top:8px;font-size:12px;">Nummer: ____</div>
+              </div>
+              <div class="wsCell" style="min-width:180px;">
+                <div id="ws3_4" class="mini"></div>
+                <div style="text-align:center;font-size:12px;">1 : 6</div>
+                <div style="margin-top:8px;font-size:12px;">Nummer: ____</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="wsBlock">
+            <div class="wsQ">4) Merksatz</div>
+            <div style="font-size:12px;margin-bottom:6px;">Schreibe den Satz fertig:</div>
+            <div class="wsLine"></div>
+            <div style="font-size:12px;">Zwei Mischungen sind gleich (schmecken/sehen gleich), wenn __________________________.</div>
+            <div class="wsLine"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* -------------------------------------------------------
+   Simple black-white "cup" SVG generator
+   - input: ratio syrup:water (or ingredient:water)
+   - we visualize "strength" = ingredient / (ingredient+water)
+   - stronger => denser hatch pattern (black strokes closer together)
+------------------------------------------------------- */
+
+function strength(ing, water) {
+  const total = ing + water;
+  if (total <= 0) return 0;
+  return ing / total;
+}
+
+function cupSVG(ing, water, sizePx = 86, label = "") {
+  const s = strength(ing, water); // 0..1
+  // Pattern spacing: strong => small spacing (dense), weak => larger spacing (sparse)
+  const minGap = 3, maxGap = 10;
+  const gap = Math.round(maxGap - s * (maxGap - minGap));
+  const pid = "p" + Math.random().toString(16).slice(2);
+
+  const w = sizePx, h = Math.round(sizePx * 1.1);
+  const cupW = Math.round(w * 0.72);
+  const cupH = Math.round(h * 0.78);
+  const x = Math.round((w - cupW) / 2);
+  const y = Math.round((h - cupH) / 2);
+
+  // fill area inside cup
+  const innerPad = 6;
+  const fx = x + innerPad;
+  const fy = y + innerPad;
+  const fw = cupW - innerPad * 2;
+  const fh = cupH - innerPad * 2;
+
+  return `
+  <svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" aria-label="${label}">
+    <defs>
+      <pattern id="${pid}" patternUnits="userSpaceOnUse" width="${gap}" height="${gap}">
+        <path d="M 0 ${gap} L ${gap} 0" stroke="#000" stroke-width="1" />
+      </pattern>
+      <clipPath id="${pid}clip">
+        <rect x="${fx}" y="${fy}" width="${fw}" height="${fh}" rx="6" />
+      </clipPath>
+    </defs>
+
+    <!-- Cup outline -->
+    <rect x="${x}" y="${y}" width="${cupW}" height="${cupH}" rx="10" fill="none" stroke="#000" stroke-width="2"/>
+
+    <!-- Liquid hatch (strength) -->
+    <g clip-path="url(#${pid}clip)">
+      <rect x="${fx}" y="${fy}" width="${fw}" height="${fh}" fill="url(#${pid})" opacity="${Math.max(0.15, Math.min(0.95, 0.15 + s*0.85))}"/>
+    </g>
+
+    <!-- bottom line -->
+    <line x1="${x+8}" y1="${y+cupH-6}" x2="${x+cupW-8}" y2="${y+cupH-6}" stroke="#000" stroke-width="1"/>
+
+  </svg>`;
+}
+
+function miniChoice(ing, water, text) {
+  return `
+    <div style="display:flex;align-items:center;gap:10px;">
+      <div class="mini">${cupSVG(ing, water, 54, text)}</div>
+      <div style="font-size:13px;">${text}</div>
+    </div>`;
+}
+
+function visualPair(ingA, waterA, ingB, waterB, labelA="A", labelB="B") {
+  return `
+    <div style="text-align:center;">
+      <div class="mid">${cupSVG(ingA, waterA, 86, labelA)}</div>
+      <div class="cupLabel">${labelA}: ${ingA}:${waterA}</div>
+    </div>
+    <div style="text-align:center;">
+      <div class="mid">${cupSVG(ingB, waterB, 86, labelB)}</div>
+      <div class="cupLabel">${labelB}: ${ingB}:${waterB}</div>
+    </div>`;
+}
+
+/* -------------------------------------------------------
+   Level 1 / Level 2 question sets (simple & didactic)
+   Each question shows a visual pair (A,B) OR a single mixture,
+   and asks the learner to choose.
+------------------------------------------------------- */
+
+const L1 = [
+  {
+    cat: "Saft",
+    q: "Welche Mischung schmeckt gleich wie A?",
+    prompt: "A und B sind zwei Mischungen. Welche Beschreibung passt zu B?",
+    visual: { A:[1,2], B:[2,4] }, // same
+    answers: [
+      { text:"B schmeckt gleich wie A", pick:"same" },
+      { text:"B ist stärker als A", pick:"stronger" },
+      { text:"B ist schwächer als A", pick:"weaker" },
+      { text:"Das kann man nicht sagen", pick:"unknown" }
+    ],
+    correctPick: "same"
+  },
+  {
+    cat:"Kakao",
+    q:"Welche Mischung ist stärker?",
+    prompt:"Vergleiche A und B (dunkler = stärker).",
+    visual:{ A:[2,3], B:[1,4] },
+    answers:[
+      { text:"A ist stärker", pick:"A" },
+      { text:"B ist stärker", pick:"B" },
+      { text:"Beide gleich", pick:"same" },
+      { text:"Keine Ahnung", pick:"unknown" }
+    ],
+    correctPick:"A"
+  },
+  {
+    cat:"Farbe (Wasserfarbe)",
+    q:"Welche sehen gleich dunkel aus?",
+    prompt:"Welche Aussage stimmt?",
+    visual:{ A:[1,3], B:[2,6] },
+    answers:[
+      { text:"A und B sind gleich", pick:"same" },
+      { text:"A ist stärker", pick:"A" },
+      { text:"B ist stärker", pick:"B" },
+      { text:"B ist viel stärker", pick:"B2" }
+    ],
+    correctPick:"same"
+  },
+  {
+    cat:"Salzwasser",
+    q:"Welche Lösung ist am schwächsten?",
+    prompt:"Wähle die schwächste Mischung (am hellsten).",
+    singleChoices: [
+      {ing:1, water:2, t:"1:2"},
+      {ing:1, water:5, t:"1:5"},
+      {ing:2, water:4, t:"2:4"},
+      {ing:1, water:3, t:"1:3"}
+    ],
+    correctIndex: 1
+  },
+  {
+    cat:"Sirup",
+    q:"Welche Mischung schmeckt am stärksten?",
+    prompt:"Wähle die stärkste Mischung (am dunkelsten).",
+    singleChoices: [
+      {ing:1, water:6, t:"1:6"},
+      {ing:1, water:4, t:"1:4"},
+      {ing:2, water:2, t:"2:2"},
+      {ing:1, water:5, t:"1:5"}
+    ],
+    correctIndex: 2
+  },
+  {
+    cat:"Saft",
+    q:"Welche zwei schmecken gleich?",
+    prompt:"Wähle das Paar, das gleich schmeckt.",
+    pairChoices: [
+      {A:[1,2], B:[2,4], t:"1:2 und 2:4"}, // correct
+      {A:[1,2], B:[2,3], t:"1:2 und 2:3"},
+      {A:[1,2], B:[1,3], t:"1:2 und 1:3"},
+      {A:[1,2], B:[3,2], t:"1:2 und 3:2"}
+    ],
+    correctIndex: 0
+  },
+  {
+    cat:"Kakao",
+    q:"Was passiert, wenn man mehr Milch dazu gibt?",
+    prompt:"Denke an Verdünnen.",
+    visual:{ A:[1,3], B:[1,5] },
+    answers:[
+      { text:"Es wird schwächer", pick:"weaker" },
+      { text:"Es wird stärker", pick:"stronger" },
+      { text:"Es bleibt gleich", pick:"same" },
+      { text:"Es wird süßer ohne Grund", pick:"other" }
+    ],
+    correctPick:"weaker"
+  },
+  {
+    cat:"Farbe",
+    q:"Welche ist dunkler?",
+    prompt:"Vergleiche A und B.",
+    visual:{ A:[1,4], B:[1,2] },
+    answers:[
+      { text:"A ist dunkler", pick:"A" },
+      { text:"B ist dunkler", pick:"B" },
+      { text:"Gleich dunkel", pick:"same" },
+      { text:"Beide sind schwarz", pick:"other" }
+    ],
+    correctPick:"B"
+  },
+  {
+    cat:"Alltag",
+    q:"Wann schmecken zwei Mischungen gleich?",
+    prompt:"Wähle die richtige Regel.",
+    visual:{ A:[1,3], B:[2,6] },
+    answers:[
+      { text:"Wenn das Verhältnis gleich ist", pick:"rule" },
+      { text:"Wenn gleich viel Wasser drin ist", pick:"water" },
+      { text:"Wenn die Gläser gleich groß sind", pick:"glass" },
+      { text:"Wenn man schnell rührt", pick:"stir" }
+    ],
+    correctPick:"rule"
+  },
+  {
+    cat:"Sirup",
+    q:"Welche Mischung ist schwächer als 1:3?",
+    prompt:"Wähle die schwächere (hellere) Mischung.",
+    singleChoices: [
+      {ing:1, water:2, t:"1:2"},
+      {ing:1, water:3, t:"1:3"},
+      {ing:1, water:5, t:"1:5"},
+      {ing:2, water:4, t:"2:4"}
+    ],
+    correctIndex: 2
+  },
+  {
+    cat:"Salzwasser",
+    q:"Welche zwei sind gleich salzig?",
+    prompt:"Wähle das Paar, das gleich ist.",
+    pairChoices:[
+      {A:[2,4], B:[1,2], t:"2:4 und 1:2"}, // correct
+      {A:[2,4], B:[1,3], t:"2:4 und 1:3"},
+      {A:[2,4], B:[2,3], t:"2:4 und 2:3"},
+      {A:[2,4], B:[4,2], t:"2:4 und 4:2"}
+    ],
+    correctIndex: 0
+  },
+  {
+    cat:"Farbe",
+    q:"Welche wird heller, wenn man Wasser dazu gibt?",
+    prompt:"Wähle die richtige Aussage.",
+    visual:{ A:[2,2], B:[2,5] },
+    answers:[
+      { text:"B ist heller als A", pick:"B" },
+      { text:"B ist dunkler als A", pick:"A" },
+      { text:"Beide gleich", pick:"same" },
+      { text:"Wasser macht immer dunkler", pick:"wrong" }
+    ],
+    correctPick:"B"
+  }
+];
+
+const L2 = [
+  {
+    cat:"Saft (Übertragen)",
+    q:"Welche Mischung passt zu A? (schmeckt gleich)",
+    prompt:"A ist gegeben. Wähle die Mischung, die gleich schmeckt.",
+    visual:{ A:[1,4], B:[0,0] }, // B not used, just show A
+    singleFromA:true,
+    choicesFromA: { A:[1,4], options:[[2,8],[2,6],[3,8],[1,3]], labels:["2:8","2:6","3:8","1:3"] },
+    correctIndex: 0
+  },
+  {
+    cat:"Kakao (Übertragen)",
+    q:"Welche ist gleich wie 2:6?",
+    prompt:"Wähle das gleiche Verhältnis (gleich schokoladig).",
+    visual:{ A:[2,6], B:[0,0] },
+    singleFromA:true,
+    choicesFromA: { A:[2,6], options:[[1,3],[1,4],[3,5],[6,2]], labels:["1:3","1:4","3:5","6:2"] },
+    correctIndex: 0
+  },
+  {
+    cat:"Farbe (Übertragen)",
+    q:"Welche ist gleich dunkel wie 3:9?",
+    prompt:"Wähle die Mischung mit gleichem Verhältnis.",
+    visual:{ A:[3,9], B:[0,0] },
+    singleFromA:true,
+    choicesFromA: { A:[3,9], options:[[1,3],[2,5],[3,6],[9,3]], labels:["1:3","2:5","3:6","9:3"] },
+    correctIndex: 0
+  },
+  {
+    cat:"Sirup (Übertragen)",
+    q:"Welche passt zu 1:2?",
+    prompt:"Wähle die Mischung, die gleich schmeckt wie 1:2.",
+    visual:{ A:[1,2], B:[0,0] },
+    singleFromA:true,
+    choicesFromA: { A:[1,2], options:[[2,4],[2,5],[3,5],[1,4]], labels:["2:4","2:5","3:5","1:4"] },
+    correctIndex: 0
+  },
+  {
+    cat:"Salz (Übertragen)",
+    q:"Welche zwei Paare schmecken gleich? (wähle ein Paar)",
+    prompt:"Wähle das Paar mit gleichem Verhältnis.",
+    pairChoices:[
+      {A:[1,5],B:[2,10],t:"1:5 und 2:10"}, // correct
+      {A:[1,5],B:[2,8],t:"1:5 und 2:8"},
+      {A:[1,5],B:[1,4],t:"1:5 und 1:4"},
+      {A:[1,5],B:[5,1],t:"1:5 und 5:1"}
+    ],
+    correctIndex: 0
+  },
+  {
+    cat:"Alltag (Transfer)",
+    q:"Welche Aussage ist richtig?",
+    prompt:"Es geht immer um das Verhältnis.",
+    visual:{ A:[1,3], B:[2,6] },
+    answers:[
+      { text:"Gleicher Geschmack = gleiches Verhältnis", pick:"rule" },
+      { text:"Gleicher Geschmack = gleich viel Wasser", pick:"water" },
+      { text:"Gleicher Geschmack = gleiche Gesamtmenge", pick:"total" },
+      { text:"Gleicher Geschmack = gleiche Becherform", pick:"shape" }
+    ],
+    correctPick:"rule"
+  },
+  {
+    cat:"Kakao (Übertragen)",
+    q:"Welche ist stärker als 1:4?",
+    prompt:"Wähle die stärkere Mischung.",
+    singleChoices: [
+      {ing:1, water:2, t:"1:2"},
+      {ing:1, water:5, t:"1:5"},
+      {ing:2, water:10, t:"2:10"},
+      {ing:1, water:6, t:"1:6"}
+    ],
+    correctIndex: 0
+  },
+  {
+    cat:"Farbe (Übertragen)",
+    q:"Welche ist schwächer als 2:4?",
+    prompt:"2:4 ist gleich wie 1:2. Wähle die schwächere (hellere).",
+    singleChoices: [
+      {ing:1, water:2, t:"1:2"},
+      {ing:1, water:3, t:"1:3"},
+      {ing:2, water:4, t:"2:4"},
+      {ing:3, water:6, t:"3:6"}
+    ],
+    correctIndex: 1
+  },
+  {
+    cat:"Sirup (Übertragen)",
+    q:"Welche ist genau gleich wie 4:8?",
+    prompt:"Wähle die Mischung mit gleichem Verhältnis.",
+    singleChoices: [
+      {ing:1, water:2, t:"1:2"}, // correct
+      {ing:2, water:3, t:"2:3"},
+      {ing:3, water:8, t:"3:8"},
+      {ing:2, water:6, t:"2:6"}
+    ],
+    correctIndex: 0
+  },
+  {
+    cat:"Salz (Übertragen)",
+    q:"Welche Mischung passt zu 3:6?",
+    prompt:"Wähle die Mischung, die gleich salzig ist.",
+    singleChoices: [
+      {ing:1, water:2, t:"1:2"}, // correct
+      {ing:1, water:3, t:"1:3"},
+      {ing:2, water:5, t:"2:5"},
+      {ing:3, water:4, t:"3:4"}
+    ],
+    correctIndex: 0
+  },
+  {
+    cat:"Saft (Übertragen)",
+    q:"Welche ist NICHT gleich wie 1:3?",
+    prompt:"Drei sind gleich – eine nicht. Welche ist anders?",
+    singleChoices: [
+      {ing:2, water:6, t:"2:6"},
+      {ing:3, water:9, t:"3:9"},
+      {ing:1, water:3, t:"1:3"},
+      {ing:2, water:5, t:"2:5"} // different
+    ],
+    correctIndex: 3
+  },
+  {
+    cat:"Alltag (Transfer)",
+    q:"Welche Regel hilft immer?",
+    prompt:"Wähle die beste Hilfe-Idee.",
+    visual:{ A:[2,6], B:[1,3] },
+    answers:[
+      { text:"Vergleiche: Wie viel Zutat pro Wasser?", pick:"best" },
+      { text:"Vergleiche: Welche Zahl ist größer?", pick:"num" },
+      { text:"Vergleiche: Welche Mischung hat mehr Gesamtmenge?", pick:"total" },
+      { text:"Vergleiche: Welche sieht schöner aus?", pick:"look" }
+    ],
+    correctPick:"best"
+  }
+];
+
+/* -------------------------------------------------------
+   Shared Quiz Engine (with answer shuffle)
+------------------------------------------------------- */
+function shuffle(arr) {
+  const a = arr.slice();
+  for (let i=a.length-1; i>0; i--) {
+    const j = Math.floor(Math.random()*(i+1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function makeQuiz({ data, els }) {
+  let idx = 0;
+  let score = 0;
+  let answered = false;
+  let currentCorrect = 0;
+  let currentAnswerOrder = [0,1,2,3];
+
+  function render() {
+    const q = data[idx];
+    answered = false;
+
+    els.cat.textContent = "Thema: " + q.cat;
+    els.q.textContent = q.q;
+    els.prompt.textContent = q.prompt || "";
+    els.feedback.textContent = "";
+    els.answers.innerHTML = "";
+
+    // Visual
+    els.visual.innerHTML = "";
+    if (q.visual && !q.singleChoices && !q.pairChoices && !q.choicesFromA) {
+      els.visual.innerHTML = visualPair(q.visual.A[0], q.visual.A[1], q.visual.B[0], q.visual.B[1], "A", "B");
+    } else if (q.choicesFromA) {
+      const A = q.choicesFromA.A;
+      els.visual.innerHTML = `
+        <div style="text-align:center;">
+          <div class="mid">${cupSVG(A[0], A[1], 86, "A")}</div>
+          <div class="cupLabel">A: ${A[0]}:${A[1]}</div>
+        </div>`;
+    } else {
+      els.visual.innerHTML = `<div style="font-size:12px;color:#666;">(Bild ist bei den Antworten)</div>`;
+    }
+
+    // Answer options (always 4)
+    currentAnswerOrder = shuffle([0,1,2,3]);
+
+    // Determine correct:
+    // - if q.correctPick -> find index in answers where pick matches
+    // - else if q.correctIndex -> that index
+    let correctIndex = 0;
+    if (typeof q.correctIndex === "number") correctIndex = q.correctIndex;
+    else if (q.correctPick) correctIndex = q.answers.findIndex(x => x.pick === q.correctPick);
+
+    currentCorrect = currentAnswerOrder.indexOf(correctIndex);
+
+    currentAnswerOrder.forEach((origIdx, shownIdx) => {
+      const btn = document.createElement("div");
+      btn.className = "answer";
+
+      // content
+      if (q.singleChoices) {
+        const opt = q.singleChoices[origIdx];
+        btn.innerHTML = miniChoice(opt.ing, opt.water, opt.t);
+      } else if (q.pairChoices) {
+        const opt = q.pairChoices[origIdx];
+        btn.innerHTML = `
+          <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+            <div class="mini">${cupSVG(opt.A[0], opt.A[1], 54, "X")}</div>
+            <div class="mini">${cupSVG(opt.B[0], opt.B[1], 54, "Y")}</div>
+            <div style="font-size:13px;">${opt.t}</div>
+          </div>`;
+      } else if (q.choicesFromA) {
+        const opt = q.choicesFromA.options[origIdx];
+        const label = q.choicesFromA.labels[origIdx];
+        btn.innerHTML = miniChoice(opt[0], opt[1], label);
+      } else {
+        // simple text answers
+        btn.textContent = q.answers[origIdx].text;
+      }
+
+      btn.onclick = () => handle(shownIdx, btn);
+      els.answers.appendChild(btn);
+    });
+
+    els.progress.textContent = `Frage ${idx+1} von ${data.length}`;
+    els.score.textContent = `Punkte: ${score}`;
+  }
+
+  function handle(chosenShownIdx, chosenEl) {
+    if (answered) return;
+    answered = true;
+
+    const children = [...els.answers.children];
+    children.forEach((el, j) => {
+      el.classList.add("disabled");
+      if (j === currentCorrect) el.classList.add("correct");
+    });
+
+    if (chosenShownIdx === currentCorrect) {
+      score++;
+      els.score.textContent = `Punkte: ${score}`;
+      els.feedback.textContent = "Richtig!";
+    } else {
+      chosenEl.classList.add("wrong");
+      els.feedback.textContent = "Falsch.";
+    }
+  }
+
+  function next() {
+    idx++;
+    if (idx >= data.length) {
+      idx = 0;
+      score = 0;
+    }
+    render();
+  }
+
+  render();
+  return { next };
+}
+
+/* -------------------------------------------------------
+   Sorting (drag & drop)
+   Each item has ratio ing:water; order strongest -> weakest.
+------------------------------------------------------- */
+function makeSortItem(id, title, ing, water) {
+  const div = document.createElement("div");
+  div.className = "sortItem";
+  div.draggable = true;
+  div.dataset.id = id;
+  div.dataset.ing = ing;
+  div.dataset.water = water;
+
+  div.innerHTML = `
+    <div class="mini">${cupSVG(ing, water, 54, title)}</div>
+    <div style="font-size:13px;font-weight:700;">${title}</div>
+    <div style="margin-left:auto;font-size:12px;color:#666;">(ziehen)</div>
+  `;
+  return div;
+}
+
+function setupDnd(listEl) {
+  let dragging = null;
+
+  listEl.addEventListener("dragstart", (e) => {
+    const target = e.target.closest(".sortItem");
+    if (!target) return;
+    dragging = target;
+    e.dataTransfer.effectAllowed = "move";
+  });
+
+  listEl.addEventListener("dragover", (e) => {
+    e.preventDefault();
+    const target = e.target.closest(".sortItem");
+    if (!target || !dragging || target === dragging) return;
+
+    const rect = target.getBoundingClientRect();
+    const after = (e.clientY - rect.top) > rect.height / 2;
+    if (after) target.after(dragging);
+    else target.before(dragging);
+  });
+
+  listEl.addEventListener("drop", (e) => {
+    e.preventDefault();
+    dragging = null;
+  });
+
+  listEl.addEventListener("dragend", () => dragging = null);
+}
+
+function sortStrengthDesc(items) {
+  return items.slice().sort((a,b) => {
+    const sa = strength(+a.dataset.ing, +a.dataset.water);
+    const sb = strength(+b.dataset.ing, +b.dataset.water);
+    return sb - sa;
+  });
+}
+
+function fillSort(listEl, spec) {
+  listEl.innerHTML = "";
+  const items = spec.map(x => makeSortItem(x.id, x.title, x.ing, x.water));
+  shuffle(items).forEach(x => listEl.appendChild(x));
+}
+
+function checkSort(listEl, resultEl) {
+  const items = [...listEl.querySelectorAll(".sortItem")];
+  const correct = sortStrengthDesc(items).map(x => x.dataset.id).join("|");
+  const current = items.map(x => x.dataset.id).join("|");
+
+  if (current === correct) {
+    resultEl.innerHTML = `<div class="ok">✅ Richtig sortiert!</div>`;
+    return true;
+  } else {
+    resultEl.innerHTML = `<div class="bad">❌ Noch nicht. Tipp: dunkler = stärker. (Du darfst neu ziehen.)</div>`;
+    return false;
+  }
+}
+
+/* -------------------------------------------------------
+   Tabs
+------------------------------------------------------- */
+document.querySelectorAll(".tab").forEach(btn => {
+  btn.addEventListener("click", () => {
+    document.querySelectorAll(".tab").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    const id = btn.dataset.tab;
+    document.querySelectorAll(".panel").forEach(p => p.classList.remove("active"));
+    document.getElementById(id).classList.add("active");
+  });
+});
+
+/* -------------------------------------------------------
+   Build quizzes
+------------------------------------------------------- */
+const l1Quiz = makeQuiz({
+  data: L1,
+  els: {
+    cat: document.getElementById("l1Cat"),
+    q: document.getElementById("l1Q"),
+    prompt: document.getElementById("l1Prompt"),
+    visual: document.getElementById("l1Visual"),
+    answers: document.getElementById("l1Answers"),
+    feedback: document.getElementById("l1Feedback"),
+    progress: document.getElementById("l1Progress"),
+    score: document.getElementById("l1Score")
+  }
+});
+document.getElementById("l1Next").onclick = () => l1Quiz.next();
+
+const l2Quiz = makeQuiz({
+  data: L2,
+  els: {
+    cat: document.getElementById("l2Cat"),
+    q: document.getElementById("l2Q"),
+    prompt: document.getElementById("l2Prompt"),
+    visual: document.getElementById("l2Visual"),
+    answers: document.getElementById("l2Answers"),
+    feedback: document.getElementById("l2Feedback"),
+    progress: document.getElementById("l2Progress"),
+    score: document.getElementById("l2Score")
+  }
+});
+document.getElementById("l2Next").onclick = () => l2Quiz.next();
+
+/* -------------------------------------------------------
+   Sorting setup
+------------------------------------------------------- */
+const sortA = document.getElementById("sortA");
+const sortB = document.getElementById("sortB");
+const sortC = document.getElementById("sortC");
+
+setupDnd(sortA);
+setupDnd(sortB);
+setupDnd(sortC);
+
+const specA = [
+  {id:"A1", title:"2:2", ing:2, water:2},
+  {id:"A2", title:"1:2", ing:1, water:2},
+  {id:"A3", title:"1:4", ing:1, water:4},
+  {id:"A4", title:"1:6", ing:1, water:6},
+];
+
+const specB = [
+  {id:"B1", title:"2:2", ing:2, water:2},
+  {id:"B2", title:"1:3", ing:1, water:3},
+  {id:"B3", title:"1:5", ing:1, water:5},
+  {id:"B4", title:"1:8", ing:1, water:8},
+];
+
+const specC = [
+  {id:"C1", title:"3:3", ing:3, water:3},
+  {id:"C2", title:"1:2", ing:1, water:2},
+  {id:"C3", title:"1:4", ing:1, water:4},
+  {id:"C4", title:"2:10", ing:2, water:10},
+];
+
+function resetAllSort() {
+  fillSort(sortA, specA);
+  fillSort(sortB, specB);
+  fillSort(sortC, specC);
+  document.getElementById("sortAResult").innerHTML = "";
+  document.getElementById("sortBResult").innerHTML = "";
+  document.getElementById("sortCResult").innerHTML = "";
+}
+resetAllSort();
+
+document.getElementById("sortReset").onclick = resetAllSort;
+document.getElementById("sortCheck").onclick = () => {
+  checkSort(sortA, document.getElementById("sortAResult"));
+  checkSort(sortB, document.getElementById("sortBResult"));
+  checkSort(sortC, document.getElementById("sortCResult"));
+};
+
+/* -------------------------------------------------------
+   Worksheet visuals (black/white)
+------------------------------------------------------- */
+function setHTML(id, html) {
+  document.getElementById(id).innerHTML = html;
+}
+setHTML("ws1a1", cupSVG(1,2,54,"1:2"));
+setHTML("ws1a2", cupSVG(2,4,54,"2:4"));
+setHTML("ws1b1", cupSVG(1,3,54,"1:3"));
+setHTML("ws1b2", cupSVG(1,5,54,"1:5"));
+setHTML("ws1c1", cupSVG(2,6,54,"2:6"));
+setHTML("ws1c2", cupSVG(1,3,54,"1:3"));
+
+setHTML("ws3_1", cupSVG(1,2,54,"1:2"));
+setHTML("ws3_2", cupSVG(1,3,54,"1:3"));
+setHTML("ws3_3", cupSVG(1,4,54,"1:4"));
+setHTML("ws3_4", cupSVG(1,6,54,"1:6"));
+</script>
+</body>
+</html>
