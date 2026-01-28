@@ -1,140 +1,702 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-<meta charset="UTF-8">
-<title>Verhältnisse – Saft und Wasser</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Verhältnisse – Saft & Wasser (eine Aufgabe pro Seite)</title>
 
 <style>
-*{box-sizing:border-box;font-family:system-ui,sans-serif}
-body{margin:0;background:#f2f2f2;display:flex;justify-content:center}
-.app{background:#fff;max-width:900px;width:100%;margin:12px;padding:12px;border-radius:8px;box-shadow:0 2px 6px rgba(0,0,0,.1)}
-h1{text-align:center;font-size:18px}
-.section{margin-top:16px;font-weight:bold}
-.question{margin-top:8px;font-weight:600}
-.answers{display:grid;gap:6px;margin-top:6px}
-.answer{border:1px solid #ccc;border-radius:6px;padding:6px;background:#fafafa;cursor:pointer}
-.answer.correct{background:#d4edda;border-color:#28a745}
-.answer.wrong{background:#f8d7da;border-color:#dc3545}
-.answer.disabled{pointer-events:none}
-.feedback{margin-top:6px;font-weight:bold}
-button{margin-top:12px;padding:6px 10px;border:none;border-radius:6px;background:#007bff;color:#fff;cursor:pointer}
-button:hover{background:#0062cc}
+  * { box-sizing:border-box; font-family: system-ui, -apple-system, Segoe UI, sans-serif; }
+  body { margin:0; background:#f4f4f4; display:flex; justify-content:center; }
+  .app {
+    background:#fff; max-width: 920px; width:100%;
+    margin:12px; padding:12px; border-radius:10px;
+    box-shadow:0 2px 8px rgba(0,0,0,.08);
+  }
+  h1 { margin: 6px 0 10px; text-align:center; font-size:18px; }
 
-/* einfache Graustufen-Gläser */
-.glasses{display:flex;gap:8px;margin-top:6px}
-.glass{width:40px;height:80px;border:2px solid #555;border-radius:4px;display:flex;align-items:flex-end}
-.fill{width:100%}
-.dark{background:#666;height:60%}
-.medium{background:#999;height:60%}
-.light{background:#ccc;height:60%}
+  .top { display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap; }
+  .meta { font-size:12px; color:#555; }
+  .pill { font-size:12px; color:#444; background:#fafafa; border:1px solid #eee; padding:6px 10px; border-radius:999px; }
 
-/* Sortieren */
-.sort-area{display:flex;gap:10px;margin-top:8px}
-.card{padding:6px;border:1px solid #aaa;border-radius:6px;background:#eee;cursor:move}
-.drop{flex:1;border:2px dashed #aaa;padding:6px;border-radius:6px;min-height:80px}
+  .card { margin-top:10px; border:1px solid #e5e5e5; border-radius:12px; padding:12px; background:#fff; }
+  .cat { font-size:12px; font-weight:900; color:#444; margin-bottom:6px; }
+  .title { font-weight:900; font-size:16px; margin-bottom:8px; }
+  .text { font-size:14px; color:#222; line-height:1.35; }
+  .text b { font-weight:900; }
+  .help {
+    margin-top:10px; padding:10px;
+    background:#fafafa; border:1px solid #eee; border-radius:12px;
+    font-size:13px; color:#333;
+  }
+
+  .answers { display:grid; gap:8px; margin-top:12px; }
+  .answer {
+    border:1px solid #ccc; border-radius:12px; padding:10px;
+    background:#fafafa; cursor:pointer; font-size:14px;
+  }
+  .answer:hover { background:#f0f0f0; }
+  .answer.disabled { pointer-events:none; opacity:.95; }
+  .answer.correct { background:#d4edda; border-color:#28a745; }
+  .answer.wrong { background:#f8d7da; border-color:#dc3545; }
+
+  .feedback { margin-top:10px; font-weight:900; min-height:22px; }
+  .controls { margin-top:12px; display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap; }
+  .btn {
+    padding:8px 12px; border:none; border-radius:12px;
+    background:#007bff; color:#fff; cursor:pointer; font-size:13px;
+  }
+  .btn:hover { background:#0062cc; }
+  .btn.secondary { background:#222; }
+  .btn.secondary:hover { background:#000; }
+  .btn:disabled { opacity:.5; cursor:not-allowed; }
+
+  /* SIMPLE GRAYSCALE VISUALS (Krug + Gläser) */
+  .visualRow { margin-top:12px; display:flex; gap:14px; align-items:flex-end; flex-wrap:wrap; }
+  .jug { width:110px; height:140px; border:2px solid #333; border-radius:14px 14px 18px 18px; position:relative; }
+  .jug:before { content:""; position:absolute; top:-10px; left:16px; width:50px; height:20px; border:2px solid #333; border-bottom:none; border-radius:10px 10px 0 0; background:#fff; }
+  .jugFill { position:absolute; left:8px; right:8px; bottom:8px; height:70%; border-radius:10px; border:1px solid #000; background:#ddd; }
+  .glass { width:38px; height:80px; border:2px solid #333; border-radius:8px; position:relative; }
+  .glassFill { position:absolute; left:5px; right:5px; bottom:5px; height:60%; border-radius:6px; border:1px solid #000; background:#ddd; }
+  .label { font-size:12px; color:#444; margin-top:6px; text-align:center; }
+  .miniCol { display:flex; flex-direction:column; align-items:center; }
+
+  /* Map strength -> grayscale */
+  /* (no hatch, only solid gray) */
+
+  /* SORT (single drop field) */
+  .sortWrap { margin-top:10px; display:flex; gap:12px; flex-wrap:wrap; }
+  .bank, .target {
+    flex:1 1 320px;
+    border:2px dashed #aaa; border-radius:12px; padding:10px; background:#fcfcfc;
+    min-height:120px;
+  }
+  .zoneTitle { font-weight:900; margin-bottom:8px; }
+  .sortItem {
+    border:1px solid #ccc; border-radius:12px; padding:10px; background:#fafafa;
+    margin-bottom:8px; cursor:grab; user-select:none;
+  }
+  .hint { font-size:12px; color:#555; margin-top:6px; }
+  .ok { color:#28a745; font-weight:900; }
+  .bad { color:#dc3545; font-weight:900; }
 </style>
 </head>
 
 <body>
 <div class="app">
-<h1>Verhältnisse – Saft und Wasser</h1>
+  <h1>Verhältnisse – Saft und Wasser</h1>
 
-<div class="section">Einführung</div>
-<p>
-Ich mische Saft und Wasser in einen Krug.<br>
-Zwei Mischungen schmecken gleich.<br>
-Sie sind gleich gemischt.
-</p>
-
-<!-- LEVEL 1 -->
-<div class="section">Level 1 – Erkennen</div>
-
-<div class="question">
-Ich mische in einen Krug<br>
-<b>2 Gläser Saft und 3 Gläser Wasser.</b><br><br>
-Welche Mischung schmeckt gleich?<br>
-Welche Mischung ist gleich gemischt?
-</div>
-
-<div class="glasses">
-  <div class="glass"><div class="fill medium"></div></div>
-  <div class="glass"><div class="fill medium"></div></div>
-</div>
-
-<div class="answers" id="answers1">
-  <div class="answer" onclick="check(this,true)">4 Gläser Saft und 6 Gläser Wasser</div>
-  <div class="answer" onclick="check(this,false)">2 Gläser Saft und 4 Gläser Wasser</div>
-  <div class="answer" onclick="check(this,false)">3 Gläser Saft und 3 Gläser Wasser</div>
-  <div class="answer" onclick="check(this,false)">1 Glas Saft und 3 Gläser Wasser</div>
-</div>
-
-<div class="feedback" id="fb1"></div>
-
-<!-- LEVEL 2 -->
-<div class="section">Level 2 – Übertragen</div>
-
-<div class="question">
-Mischung A:<br>
-1 Glas Saft und 2 Gläser Wasser<br><br>
-Mischung B:<br>
-3 Gläser Saft und 6 Gläser Wasser<br><br>
-Schmecken die Mischungen gleich?<br>
-Sind sie gleich gemischt?
-</div>
-
-<div class="answers" id="answers2">
-  <div class="answer" onclick="check2(this,true)">Ja</div>
-  <div class="answer" onclick="check2(this,false)">Nein</div>
-</div>
-
-<div class="feedback" id="fb2"></div>
-
-<!-- SORTIEREN -->
-<div class="section">Sortieren</div>
-<p>
-Ordne die Mischungen.<br>
-Oben: schmeckt stärker<br>
-Unten: schmeckt schwächer
-</p>
-
-<div class="sort-area">
-  <div class="drop" ondrop="drop(event)" ondragover="allowDrop(event)">
-    <b>Stärker</b>
+  <div class="top">
+    <div class="pill" id="pill">Eine Aufgabe. Dann „Weiter“.</div>
+    <div class="meta" id="meta">0 / 0</div>
   </div>
-  <div class="drop" ondrop="drop(event)" ondragover="allowDrop(event)">
-    <b>Schwächer</b>
+
+  <div class="card">
+    <div class="cat" id="cat"></div>
+    <div class="title" id="title"></div>
+
+    <div class="text" id="text"></div>
+
+    <div id="visual" class="visualRow" style="display:none;"></div>
+
+    <div id="answers" class="answers"></div>
+
+    <div id="sortUI" style="display:none;"></div>
+
+    <div class="help" id="help"></div>
+
+    <div class="feedback" id="feedback"></div>
+
+    <div class="controls">
+      <button class="btn secondary" id="restartBtn">Neu starten</button>
+      <button class="btn" id="nextBtn" disabled>Weiter</button>
+    </div>
   </div>
-</div>
-
-<div class="sort-area">
-  <div class="card" draggable="true" ondragstart="drag(event)">2 Gläser Saft + 2 Gläser Wasser</div>
-  <div class="card" draggable="true" ondragstart="drag(event)">1 Glas Saft + 3 Gläser Wasser</div>
-  <div class="card" draggable="true" ondragstart="drag(event)">1 Glas Saft + 5 Gläser Wasser</div>
-</div>
-
 </div>
 
 <script>
-function check(el,ok){
-  document.querySelectorAll("#answers1 .answer").forEach(a=>a.classList.add("disabled"));
-  if(ok){el.classList.add("correct");document.getElementById("fb1").textContent="Richtig.";}
-  else{el.classList.add("wrong");document.getElementById("fb1").textContent="Falsch.";}
+/* =========================
+   Helpers
+========================= */
+function clamp01(x){ return Math.max(0, Math.min(1, x)); }
+function strength(ing, water){
+  const total = ing + water;
+  return total <= 0 ? 0 : ing / total;
+}
+// Map strength to grayscale (light..dark)
+function grayFor(ing, water){
+  const s = clamp01(strength(ing, water));
+  const g = Math.round(235 - s * 170); // 235..65
+  return `rgb(${g},${g},${g})`;
+}
+function shuffle(arr){
+  const a = arr.slice();
+  for(let i=a.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [a[i],a[j]]=[a[j],a[i]];
+  }
+  return a;
+}
+function gcd(a,b){ a=Math.abs(a); b=Math.abs(b); while(b){ [a,b]=[b,a%b]; } return a||1; }
+function canon(ing, water){
+  const g = gcd(ing, water);
+  return `${ing/g}:${water/g}`;
 }
 
-function check2(el,ok){
-  document.querySelectorAll("#answers2 .answer").forEach(a=>a.classList.add("disabled"));
-  if(ok){el.classList.add("correct");document.getElementById("fb2").textContent="Richtig.";}
-  else{el.classList.add("wrong");document.getElementById("fb2").textContent="Falsch.";}
+/* =========================
+   Visual: Krug + 2 Gläser
+========================= */
+function renderJugGlasses(container, A, B){
+  const [aS, aW] = A;
+  const [bS, bW] = B;
+
+  const jugA = grayFor(aS,aW);
+  const jugB = grayFor(bS,bW);
+
+  container.innerHTML = `
+    <div class="miniCol">
+      <div class="jug">
+        <div class="jugFill" style="background:${jugA}"></div>
+      </div>
+      <div class="label"><b>Krug A</b><br>${aS} Gläser Saft<br>${aW} Gläser Wasser</div>
+    </div>
+
+    <div class="miniCol">
+      <div class="jug">
+        <div class="jugFill" style="background:${jugB}"></div>
+      </div>
+      <div class="label"><b>Krug B</b><br>${bS} Gläser Saft<br>${bW} Gläser Wasser</div>
+    </div>
+  `;
 }
 
-function allowDrop(ev){ev.preventDefault();}
-function drag(ev){ev.dataTransfer.setData("text",ev.target.outerHTML);}
-function drop(ev){
-  ev.preventDefault();
-  ev.target.innerHTML+=ev.dataTransfer.getData("text");
+/* =========================
+   Steps (eine Aufgabe pro Screen)
+   Einheitliche Doppelbenennung:
+   - "schmeckt gleich / ist gleich gemischt"
+========================= */
+const steps = [
+  {
+    type:"intro",
+    cat:"Einführung",
+    title:"So arbeiten wir",
+    text: `
+      <p><b>Ich mische Saft und Wasser in einen Krug.</b></p>
+      <p>Manchmal schmeckt es <b>gleich</b>.<br>
+      Dann ist es <b>gleich gemischt</b>.</p>
+      <p><b>Merksatz:</b><br>
+      Zwei Mischungen <b>schmecken gleich / sind gleich gemischt</b>, wenn das Verhältnis gleich ist.</p>
+    `,
+    help:`Tipp: Am Anfang helfen Graustufen. <b>Dunkler</b> bedeutet: mehr Saft pro Wasser.`,
+  },
+
+  /* ---------- LEVEL 1 (mit Bildern am Anfang) ---------- */
+  {
+    type:"mc",
+    cat:"Level 1 – Erkennen (mit Bildern)",
+    title:"Aufgabe 1",
+    text: `
+      <p>Ich mische in einen Krug:<br>
+      <b>2 Gläser Saft</b> und <b>3 Gläser Wasser</b> (Krug A).</p>
+      <p>Ich mische noch einmal (Krug B).</p>
+      <p><b>Welche Aussage stimmt?</b></p>
+    `,
+    showVisual:true,
+    visualA:[2,3],
+    visualB:[4,6],
+    answers:[
+      {t:"Krug B schmeckt gleich / ist gleich gemischt wie Krug A.", ok:true},
+      {t:"Krug B schmeckt stärker / ist stärker gemischt als Krug A.", ok:false},
+      {t:"Krug B schmeckt schwächer / ist schwächer gemischt als Krug A.", ok:false},
+      {t:"Man kann das nicht sagen.", ok:false}
+    ],
+    help:`Denk: <b>schmeckt gleich / ist gleich gemischt</b> bedeutet: gleich viel Saft pro Wasser.`,
+  },
+  {
+    type:"mc",
+    cat:"Level 1 – Erkennen (mit Bildern)",
+    title:"Aufgabe 2",
+    text: `
+      <p>Ich mische in einen Krug (Krug A):<br>
+      <b>1 Glas Saft</b> und <b>5 Gläser Wasser</b>.</p>
+      <p>Ich mische in einen Krug (Krug B):<br>
+      <b>1 Glas Saft</b> und <b>2 Gläser Wasser</b>.</p>
+      <p><b>Welche Aussage stimmt?</b></p>
+    `,
+    showVisual:true,
+    visualA:[1,5],
+    visualB:[1,2],
+    answers:[
+      {t:"Krug B schmeckt stärker / ist stärker gemischt als Krug A.", ok:true},
+      {t:"Krug B schmeckt gleich / ist gleich gemischt wie Krug A.", ok:false},
+      {t:"Krug B schmeckt schwächer / ist schwächer gemischt als Krug A.", ok:false},
+      {t:"Beide sind gleich, weil beide 1 Glas Saft haben.", ok:false}
+    ],
+    help:`Mehr Saft pro Wasser = <b>stärker</b>.`,
+  },
+  {
+    type:"mc",
+    cat:"Level 1 – Erkennen (mit Bildern)",
+    title:"Aufgabe 3",
+    text: `
+      <p>Ich mische in einen Krug (Krug A):<br>
+      <b>1 Glas Saft</b> und <b>3 Gläser Wasser</b>.</p>
+      <p>Ich mische in einen Krug (Krug B):<br>
+      <b>2 Gläser Saft</b> und <b>6 Gläser Wasser</b>.</p>
+      <p><b>Welche Aussage stimmt?</b></p>
+    `,
+    showVisual:true,
+    visualA:[1,3],
+    visualB:[2,6],
+    answers:[
+      {t:"Krug B schmeckt gleich / ist gleich gemischt wie Krug A.", ok:true},
+      {t:"Krug B schmeckt stärker / ist stärker gemischt als Krug A.", ok:false},
+      {t:"Krug B schmeckt schwächer / ist schwächer gemischt als Krug A.", ok:false},
+      {t:"Man braucht Rechnen, sonst geht das nicht.", ok:false}
+    ],
+    help:`Wenn beide gleich „dunkel“ wirken, dann <b>schmeckt gleich / ist gleich gemischt</b>.`,
+  },
+
+  /* ---------- LEVEL 1 (ohne Bilder, weiterhin einfach) ---------- */
+  {
+    type:"mc",
+    cat:"Level 1 – Erkennen (ohne Bilder)",
+    title:"Aufgabe 4",
+    text: `
+      <p>Ich mische in einen Krug:<br>
+      <b>1 Glas Saft</b> und <b>2 Gläser Wasser</b>.</p>
+      <p><b>Welche Mischung schmeckt gleich / ist gleich gemischt?</b></p>
+    `,
+    showVisual:false,
+    answers:[
+      {t:"2 Gläser Saft und 4 Gläser Wasser", ok:true},
+      {t:"2 Gläser Saft und 3 Gläser Wasser", ok:false},
+      {t:"1 Glas Saft und 3 Gläser Wasser", ok:false},
+      {t:"3 Gläser Saft und 4 Gläser Wasser", ok:false}
+    ],
+    help:`Suche die Mischung, die „gleich viel Saft pro Wasser“ hat.`,
+  },
+  {
+    type:"mc",
+    cat:"Level 1 – Erkennen (ohne Bilder)",
+    title:"Aufgabe 5",
+    text: `
+      <p>Ich mische in einen Krug:<br>
+      <b>2 Gläser Saft</b> und <b>2 Gläser Wasser</b>.</p>
+      <p><b>Welche Aussage stimmt?</b></p>
+    `,
+    showVisual:false,
+    answers:[
+      {t:"Das schmeckt stärker / ist stärker gemischt als 1 Glas Saft und 3 Gläser Wasser.", ok:true},
+      {t:"Das schmeckt schwächer / ist schwächer gemischt als 1 Glas Saft und 3 Gläser Wasser.", ok:false},
+      {t:"Das schmeckt gleich / ist gleich gemischt wie 1 Glas Saft und 3 Gläser Wasser.", ok:false},
+      {t:"Man kann das nicht vergleichen.", ok:false}
+    ],
+    help:`2:2 ist sehr „saftig“: viel Saft pro Wasser.`,
+  },
+
+  /* ---------- Zusatz-Kontexte (wieder dazu), aber sprachlich gleich ---------- */
+  {
+    type:"mc",
+    cat:"Zusatz – Sirup (wie Saft)",
+    title:"Aufgabe 6",
+    text: `
+      <p>Ich mische in einen Krug:<br>
+      <b>1 Glas Sirup</b> und <b>4 Gläser Wasser</b>.</p>
+      <p><b>Welche Mischung schmeckt gleich / ist gleich gemischt?</b></p>
+    `,
+    showVisual:false,
+    answers:[
+      {t:"2 Gläser Sirup und 8 Gläser Wasser", ok:true},
+      {t:"2 Gläser Sirup und 6 Gläser Wasser", ok:false},
+      {t:"1 Glas Sirup und 6 Gläser Wasser", ok:false},
+      {t:"3 Gläser Sirup und 8 Gläser Wasser", ok:false}
+    ],
+    help:`Sirup ist wie Saft: gleiches Verhältnis = <b>schmeckt gleich / ist gleich gemischt</b>.`,
+  },
+  {
+    type:"mc",
+    cat:"Zusatz – Kakao (wie Saft)",
+    title:"Aufgabe 7",
+    text: `
+      <p>Ich mische in einen Krug:<br>
+      <b>2 Gläser Kakao</b> und <b>6 Gläser Milch</b>.</p>
+      <p><b>Welche Mischung schmeckt gleich / ist gleich gemischt?</b></p>
+    `,
+    showVisual:false,
+    answers:[
+      {t:"1 Glas Kakao und 3 Gläser Milch", ok:true},
+      {t:"1 Glas Kakao und 4 Gläser Milch", ok:false},
+      {t:"2 Gläser Kakao und 5 Gläser Milch", ok:false},
+      {t:"3 Gläser Kakao und 6 Gläser Milch", ok:false}
+    ],
+    help:`Immer gleich denken: <b>schmeckt gleich / ist gleich gemischt</b> bedeutet gleiches Verhältnis.`,
+  },
+
+  /* ---------- FARBE mit LÖFFEL (wie gewünscht) ---------- */
+  {
+    type:"mc",
+    cat:"Zusatz – Farbe (mit Löffeln)",
+    title:"Aufgabe 8",
+    text: `
+      <p>Ich mische Farbe mit Wasser.</p>
+      <p>Ich mische:<br>
+      <b>1 Löffel Farbe</b> und <b>3 Löffel Wasser</b>.</p>
+      <p><b>Welche Mischung sieht gleich aus / ist gleich gemischt?</b></p>
+    `,
+    showVisual:false,
+    answers:[
+      {t:"2 Löffel Farbe und 6 Löffel Wasser", ok:true},
+      {t:"2 Löffel Farbe und 5 Löffel Wasser", ok:false},
+      {t:"1 Löffel Farbe und 5 Löffel Wasser", ok:false},
+      {t:"3 Löffel Farbe und 6 Löffel Wasser", ok:false}
+    ],
+    help:`Auch hier: gleiches Verhältnis = <b>sieht gleich aus / ist gleich gemischt</b>.`,
+  },
+
+  /* ---------- LEVEL 2 (Übertragen, ohne Bilder) ---------- */
+  {
+    type:"yesno",
+    cat:"Level 2 – Übertragen",
+    title:"Aufgabe 9",
+    text: `
+      <p>Ich mische in einen Krug (A):<br>
+      <b>1 Glas Saft</b> und <b>2 Gläser Wasser</b>.</p>
+      <p>Ich mische in einen Krug (B):<br>
+      <b>3 Gläser Saft</b> und <b>6 Gläser Wasser</b>.</p>
+      <p><b>Schmecken die Mischungen gleich / sind sie gleich gemischt?</b></p>
+    `,
+    correctYes:true,
+    help:`Wenn beide das gleiche Verhältnis haben, dann: <b>Ja</b>.`,
+  },
+  {
+    type:"mc",
+    cat:"Level 2 – Übertragen",
+    title:"Aufgabe 10",
+    text: `
+      <p>Ich mische in einen Krug:<br>
+      <b>3 Gläser Saft</b> und <b>9 Gläser Wasser</b>.</p>
+      <p><b>Welche Mischung schmeckt gleich / ist gleich gemischt?</b></p>
+    `,
+    answers:[
+      {t:"1 Glas Saft und 3 Gläser Wasser", ok:true},
+      {t:"1 Glas Saft und 4 Gläser Wasser", ok:false},
+      {t:"2 Gläser Saft und 5 Gläser Wasser", ok:false},
+      {t:"3 Gläser Saft und 6 Gläser Wasser", ok:false}
+    ],
+    help:`3:9 ist wie 1:3 → <b>schmeckt gleich / ist gleich gemischt</b>.`,
+  },
+  {
+    type:"mc",
+    cat:"Level 2 – Übertragen",
+    title:"Aufgabe 11",
+    text: `
+      <p>Ich mische in einen Krug:<br>
+      <b>2 Gläser Saft</b> und <b>8 Gläser Wasser</b>.</p>
+      <p><b>Drei Antworten passen. Eine passt nicht.</b><br>
+      Welche passt <b>nicht</b> (schmeckt nicht gleich / ist nicht gleich gemischt)?</p>
+    `,
+    answers:[
+      {t:"1 Glas Saft und 4 Gläser Wasser", ok:false},
+      {t:"3 Gläser Saft und 12 Gläser Wasser", ok:false},
+      {t:"4 Gläser Saft und 16 Gläser Wasser", ok:false},
+      {t:"2 Gläser Saft und 6 Gläser Wasser", ok:true}
+    ],
+    help:`2:8 ist 1:4. Alles mit 1:4 passt – 2:6 ist anders.`,
+  },
+
+  /* ---------- SORTIEREN: ein Feld zum Hineinziehen ---------- */
+  {
+    type:"sort",
+    cat:"Sortieren",
+    title:"Aufgabe 12",
+    text: `
+      <p><b>Ordne von stark nach schwach.</b></p>
+      <p>Ziehe alle Karten in das Feld „Meine Reihenfolge“.<br>
+      Oben = schmeckt stärker / ist stärker gemischt.<br>
+      Unten = schmeckt schwächer / ist schwächer gemischt.</p>
+    `,
+    sortItems: [
+      {id:"s1", text:"2 Gläser Saft und 2 Gläser Wasser", ing:2, water:2},
+      {id:"s2", text:"1 Glas Saft und 2 Gläser Wasser", ing:1, water:2},
+      {id:"s3", text:"1 Glas Saft und 4 Gläser Wasser", ing:1, water:4},
+      {id:"s4", text:"1 Glas Saft und 6 Gläser Wasser", ing:1, water:6},
+    ],
+    help:`Tipp: „Mehr Saft pro Wasser“ = stärker.`,
+  }
+];
+
+/* =========================
+   UI state
+========================= */
+let stepIndex = 0;
+let answered = false;
+
+const metaEl = document.getElementById("meta");
+const catEl = document.getElementById("cat");
+const titleEl = document.getElementById("title");
+const textEl = document.getElementById("text");
+const helpEl = document.getElementById("help");
+const answersEl = document.getElementById("answers");
+const feedbackEl = document.getElementById("feedback");
+const nextBtn = document.getElementById("nextBtn");
+const restartBtn = document.getElementById("restartBtn");
+const visualEl = document.getElementById("visual");
+const sortUI = document.getElementById("sortUI");
+
+function setMeta(){
+  metaEl.textContent = `${stepIndex + 1} / ${steps.length}`;
 }
+
+function clearScreen(){
+  answersEl.innerHTML = "";
+  feedbackEl.textContent = "";
+  answered = false;
+  nextBtn.disabled = true;
+  visualEl.style.display = "none";
+  visualEl.innerHTML = "";
+  sortUI.style.display = "none";
+  sortUI.innerHTML = "";
+}
+
+function renderStep(){
+  clearScreen();
+  setMeta();
+
+  const s = steps[stepIndex];
+  catEl.textContent = s.cat || "";
+  titleEl.textContent = s.title || "";
+  textEl.innerHTML = s.text || "";
+  helpEl.innerHTML = s.help || "";
+
+  if(s.type === "intro"){
+    nextBtn.disabled = false;
+    return;
+  }
+
+  if(s.showVisual && s.visualA && s.visualB){
+    visualEl.style.display = "flex";
+    renderJugGlasses(visualEl, s.visualA, s.visualB);
+  }
+
+  if(s.type === "mc"){
+    renderMC(s);
+  } else if(s.type === "yesno"){
+    renderYesNo(s);
+  } else if(s.type === "sort"){
+    renderSort(s);
+  }
+}
+
+function renderMC(s){
+  // Shuffle answers
+  const order = shuffle(s.answers.map((_,i)=>i));
+  order.forEach((idx) => {
+    const a = s.answers[idx];
+    const btn = document.createElement("div");
+    btn.className = "answer";
+    btn.textContent = a.t;
+    btn.onclick = () => {
+      if(answered) return;
+      answered = true;
+
+      // lock all
+      [...answersEl.children].forEach(el => el.classList.add("disabled"));
+
+      if(a.ok){
+        btn.classList.add("correct");
+        feedbackEl.textContent = "Richtig.";
+      } else {
+        btn.classList.add("wrong");
+        feedbackEl.textContent = "Falsch.";
+        // mark correct
+        // find correct in displayed list
+        [...answersEl.children].forEach((el) => {
+          const txt = el.textContent;
+          const found = s.answers.find(x => x.t === txt);
+          if(found && found.ok) el.classList.add("correct");
+        });
+      }
+      nextBtn.disabled = false;
+    };
+    answersEl.appendChild(btn);
+  });
+}
+
+function renderYesNo(s){
+  const opts = shuffle([
+    {t:"Ja", ok: s.correctYes === true},
+    {t:"Nein", ok: s.correctYes === false}
+  ]);
+
+  opts.forEach(o => {
+    const btn = document.createElement("div");
+    btn.className = "answer";
+    btn.textContent = o.t;
+    btn.onclick = () => {
+      if(answered) return;
+      answered = true;
+
+      [...answersEl.children].forEach(el => el.classList.add("disabled"));
+
+      if(o.ok){
+        btn.classList.add("correct");
+        feedbackEl.textContent = "Richtig.";
+      } else {
+        btn.classList.add("wrong");
+        feedbackEl.textContent = "Falsch.";
+        // mark correct
+        [...answersEl.children].forEach(el => {
+          if((el.textContent==="Ja" && s.correctYes) || (el.textContent==="Nein" && !s.correctYes)){
+            el.classList.add("correct");
+          }
+        });
+      }
+      nextBtn.disabled = false;
+    };
+    answersEl.appendChild(btn);
+  });
+}
+
+/* =========================
+   Sort UI (single drop field)
+   - Bank: cards start here
+   - Target: only ONE field to drop into; order inside target is the student's order
+   - Check: compare by strength descending
+========================= */
+let dragEl = null;
+
+function enableDnD(container){
+  container.addEventListener("dragstart", (e) => {
+    const item = e.target.closest(".sortItem");
+    if(!item) return;
+    dragEl = item;
+    e.dataTransfer.effectAllowed = "move";
+  });
+
+  container.addEventListener("dragover", (e) => {
+    e.preventDefault();
+    const zone = e.target.closest(".bank, .target");
+    if(!zone || !dragEl) return;
+
+    // allow reordering inside target by dropping before/after
+    const overItem = e.target.closest(".sortItem");
+    if(overItem && overItem.parentElement === zone && overItem !== dragEl){
+      const rect = overItem.getBoundingClientRect();
+      const after = (e.clientY - rect.top) > rect.height/2;
+      if(after) overItem.after(dragEl);
+      else overItem.before(dragEl);
+    } else if(!overItem){
+      zone.appendChild(dragEl);
+    }
+  });
+
+  container.addEventListener("drop", (e) => {
+    e.preventDefault();
+    dragEl = null;
+  });
+
+  container.addEventListener("dragend", () => dragEl = null);
+}
+
+function renderSort(s){
+  sortUI.style.display = "block";
+
+  const wrap = document.createElement("div");
+  wrap.className = "sortWrap";
+
+  const bank = document.createElement("div");
+  bank.className = "bank";
+  bank.innerHTML = `<div class="zoneTitle">Karten</div><div class="hint">Ziehe in „Meine Reihenfolge“.</div>`;
+
+  const target = document.createElement("div");
+  target.className = "target";
+  target.innerHTML = `<div class="zoneTitle">Meine Reihenfolge</div><div class="hint">Oben = stärker, unten = schwächer.</div>`;
+
+  // Build items (shuffled)
+  const items = shuffle(s.sortItems.slice());
+  items.forEach(it => {
+    const div = document.createElement("div");
+    div.className = "sortItem";
+    div.draggable = true;
+    div.textContent = it.text;
+    div.dataset.ing = it.ing;
+    div.dataset.water = it.water;
+    bank.appendChild(div);
+  });
+
+  wrap.appendChild(bank);
+  wrap.appendChild(target);
+
+  const checkRow = document.createElement("div");
+  checkRow.style.marginTop = "10px";
+  checkRow.style.display = "flex";
+  checkRow.style.gap = "8px";
+  checkRow.style.flexWrap = "wrap";
+  checkRow.style.alignItems = "center";
+
+  const checkBtn = document.createElement("button");
+  checkBtn.className = "btn";
+  checkBtn.textContent = "Prüfen";
+
+  const result = document.createElement("div");
+  result.style.fontWeight = "900";
+
+  checkBtn.onclick = () => {
+    const targetItems = [...target.querySelectorAll(".sortItem")];
+    if(targetItems.length !== s.sortItems.length){
+      result.className = "bad";
+      result.textContent = "Noch nicht. Ziehe zuerst alle Karten in „Meine Reihenfolge“.";
+      return;
+    }
+
+    // Build correct order by strength descending
+    const correctSorted = s.sortItems
+      .slice()
+      .sort((a,b) => strength(b.ing,b.water) - strength(a.ing,a.water))
+      .map(x => `${x.ing}:${x.water}`);
+
+    const current = targetItems.map(el => `${el.dataset.ing}:${el.dataset.water}`);
+
+    const ok = correctSorted.join("|") === current.join("|");
+
+    if(ok){
+      result.className = "ok";
+      result.textContent = "✅ Richtig geordnet.";
+      nextBtn.disabled = false;
+    } else {
+      result.className = "bad";
+      result.textContent = "❌ Noch nicht. Tipp: Mehr Saft pro Wasser = stärker.";
+      // keep next disabled
+      nextBtn.disabled = true;
+    }
+  };
+
+  checkRow.appendChild(checkBtn);
+  checkRow.appendChild(result);
+
+  sortUI.appendChild(wrap);
+  sortUI.appendChild(checkRow);
+
+  enableDnD(sortUI);
+}
+
+/* =========================
+   Navigation
+========================= */
+nextBtn.onclick = () => {
+  stepIndex++;
+  if(stepIndex >= steps.length){
+    stepIndex = 0;
+  }
+  renderStep();
+};
+restartBtn.onclick = () => {
+  stepIndex = 0;
+  renderStep();
+};
+
+renderStep();
 </script>
-
 </body>
 </html>
